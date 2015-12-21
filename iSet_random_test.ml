@@ -19,8 +19,8 @@ module S = Set.Make(Integers)
 
 let loop f (a,b) s =
     let rec pom a b acc =
-        if a = b then acc
-        else pom (a+1) b (f a s)
+        if a = b then (f a acc)
+        else pom (a+1) b (f a acc)
     in pom a b s
 
 let print_list l = List.iter (fun a -> Printf.printf "%d " a) l
@@ -33,55 +33,9 @@ module IntSet =
         let remove = loop S.remove
     end
 
-(*module PseudoSet =
-    struct
-        type val_ = {
-            size: int;
-            mutable array: bool array
-        }
-        type obj_ = {
-            value: val_;
-            add: int * int -> unit;
-            remove: int * int -> unit;
-            split: int -> bool array * bool * bool array;
-            replace: bool array -> unit
-        }
-
-        let add_ {array = arr} (a, b) =
-            for i = a to b do
-                arr.(i) <- true
-            done
-
-        let remove_ {array = arr} (a, b) =
-            for i = a to b do
-                arr.(i) <- false
-            done
-
-        let split_ {array = arr; size = n} a =
-            let l = Array.init n (fun i -> if i < a then arr.(i) else false)
-            and r = Array.init n (fun i -> if i > a then arr.(i) else false)
-            and b = arr.(a)
-            in (l, b, r)
-
-        let replace_ x a =
-            x.array <- a
-
-        let create n =
-            let self = {
-                size = n;
-                array = Array.make n false
-            } in {
-                value = self;
-                add = add_ self;
-                remove = remove_ self;
-                split = split_ self;
-                replace = replace_ self
-            }
-    end;;*)
-
 (* let's use global vars *)
 let lo = 0
-let hi = 20
+let hi = 20000
 let n = hi
 let clear_step = 0;;
 let intset = ref IntSet.empty;;
@@ -118,10 +72,6 @@ let test_remove () : unit =
     iset := ISet.remove (a, b) !iset
 
 (*
-let print_bool_array a : unit =
-    for i = 0 to n-1 do
-        if a.(i) then Printf.printf "%d " i
-    done
 
 let test_split () : unit =
     let a = Random.int n
@@ -144,30 +94,31 @@ let test_split () : unit =
 
 
 let interval_to_list (a,b) =
-    loop (fun x l -> x::l) (a,b) []
+    List.rev (loop (fun x l -> x::l) (a,b) [])
 
 let to_int_list ll =
-    List.fold_left (fun acc el -> (interval_to_list el) @ acc) [] ll
+    List.fold_left (fun acc el -> acc @ (interval_to_list el)) [] ll
 
 let print_intset set =
     print_list (IntSet.elements set)
 
-let print_iset () set =
+let print_iset set =
     print_list (to_int_list (ISet.elements set))
 
+let print_sets () =
+    print_string "\nPseudoSet: "; print_intset !intset;
+    print_string "\n     iSet: "; print_iset !iset
+
+let _ = print_list (interval_to_list (3,7))
+
 let check_correctness () : unit =
-    (*if verbose then
-    begin
-        print_newline ();
-        print_string "PseudoSet: "; print_pset ();
-        print_string "     iSet: "; print_iset ();
-    end;*)
+    if verbose then print_sets ();
     let ints = IntSet.elements !intset in
     let i = to_int_list (ISet.elements !iset) in
     begin
         try assert (ints = i)
         with Assert_failure x ->
-            failwith "bla"
+            print_sets(); print_newline(); raise (Assert_failure(x))
     end;
     Printf.printf "- OK!\n"; flush stdout
 
