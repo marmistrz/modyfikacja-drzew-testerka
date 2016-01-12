@@ -35,12 +35,13 @@ module IntSet =
     end
 
 (* let's use global vars *)
-let lo = if debug then 0 else -20000
-let hi = if debug then 20 else 20000
+let lo = if debug then 0 else -100000
+let hi = if debug then 20 else 100000
 let range = hi - lo
 let clear_step = if debug then 10 else 0
 let intset = ref IntSet.empty
 let iset = ref ISet.empty
+let rnd l h = Random.int (h-l+1) + l
 let random () = Random.int range + lo
 
 type testAction =
@@ -56,7 +57,7 @@ let interval_to_list (a,b) =
     List.rev (loop (fun x l -> x::l) (a,b) [])
 
 let to_int_list ll =
-    List.fold_left (fun acc el -> acc @ (interval_to_list el)) [] ll
+    List.fold_left (fun acc el -> List.rev_append (List.rev acc) (interval_to_list el)) [] ll
 
 let print_intset set =
     print_list (IntSet.elements set)
@@ -82,16 +83,16 @@ let get_action () : testAction =
         TestBelow
 
 let test_add () : unit =
-    let a, b = sort (random (), random ()) in
-    intset := IntSet.add (a, b) !intset;
-    iset := ISet.add (a, b) !iset;
-    Printf.printf "add (%d, %d)... " a b;;
+    let a, b = (random (), rnd 2 10) in
+    intset := IntSet.add (a, a+b) !intset;
+    iset := ISet.add (a, a+b) !iset;
+    Printf.printf "add (%d, %d)... " a (a+b);;
 
 let test_remove () : unit =
-    let a, b = sort (random (), random ()) in
-    Printf.printf "remove (%d, %d)... " a b;
-    intset := IntSet.remove (a, b) !intset;
-    iset := ISet.remove (a, b) !iset
+    let a, b = (random (), rnd 5 20) in
+    Printf.printf "remove (%d, %d)... " a (a+b);
+    intset := IntSet.remove (a, a+b) !intset;
+    iset := ISet.remove (a, a+b) !iset
 
 let test_split () : unit =
     let a = random ()
@@ -116,8 +117,6 @@ let test_below () : unit =
         Printf.printf "\nReturned %d, expected %d\n" test c;
         if debug then bt ();
         raise (Assert_failure(x))
-
-let _ = print_list (interval_to_list (3,7))
 
 let check_correctness () : unit =
     if verbose then print_sets ();

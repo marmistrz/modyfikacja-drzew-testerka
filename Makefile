@@ -1,7 +1,7 @@
 # Copyright Artur "mrowqa" Jamro 2015
 TEST_BIN=iset_test
 RANDOM_TEST_BIN=iset_random_test
-OCAMLC=ocamlc
+OCAMLC=ocamlc -g
 SRC=iSet.mli iSet.ml
 TEST_SRC=$(SRC) iSet_test.ml
 RANDOM_TEST_SRC=$(SRC) iSet_random_test.ml
